@@ -55,6 +55,12 @@
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         ></l-tile-layer>        
         <l-marker :lat-lng="[ipAddress.location.lat, ipAddress.location.lng]" draggable @moveend="log('moveend')">
+          <l-icon
+            :icon-anchor="staticAnchor"
+            class="leafletCustomMarker"
+          >
+            <img src="/assets/images/icon-location.svg">
+          </l-icon>
           <l-tooltip>
             {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
           </l-tooltip>
@@ -70,8 +76,10 @@ import {
   LMap,
   LTileLayer,
   LMarker,
-  LTooltip
+  LTooltip,
+  LIcon
 } from "@vue-leaflet/vue-leaflet";
+import { icon } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 export default {
@@ -80,7 +88,8 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LTooltip
+    LTooltip,
+    LIcon
   },
   mounted() {
     axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}`).then((response) => {
@@ -94,7 +103,22 @@ export default {
       searchText: '',
       loading: false,
       zoom: 11,
-      ipAddressError: ''
+      ipAddressError: '',
+      icon: icon({
+        iconUrl: "static/images/baseball-marker.png",
+        iconSize: [32, 37],
+        iconAnchor: [16, 37]
+      }),
+      staticAnchor: [16, 37],
+      iconSize: 64
+    }
+  },
+  computed: {
+    dynamicSize() {
+      return [this.iconSize, this.iconSize * 1.15];
+    },
+    dynamicAnchor() {
+      return [this.iconSize / 2, this.iconSize * 1.15];
     }
   },
   methods: {
@@ -282,6 +306,19 @@ export default {
 
   .errorMessage {
     color: red;
+  }
+
+  .leafletCustomMarker {
+    box-shadow: 5px 3px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  .leafletCustomMarker img {
+    height: 300px;
+    width: 300px;
   }
 
   @media only screen and (max-width: 900px) {
