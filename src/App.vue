@@ -4,7 +4,7 @@
       <div class="headerTitle">IP Address Tracker</div>
 
       <div class="searchInputWrapper">
-        <input type="text" placeholder="Search for any IP address or domain" v-model="searchText" />
+        <input type="text" placeholder="Search for any IP address or domain" v-model="searchText" v-on:keyup.enter="fetchIpAddress"/>
         <button @click="fetchIpAddress">
           <img src="/assets/images/icon-arrow.svg" alt="arrow" />
         </button>
@@ -17,18 +17,20 @@
         </div>
 
         <div class="ipAddressCard">
-          <div class="title">IP ADDRESS</div>
-          <div class="info">{{ ipAddress.ip }}</div>
+          <div class="title">LOCATION</div>
+          <div class="info">
+            {{ ipAddress.location.city}}, {{ ipAddress.location.region }}
+          </div>
         </div>
 
         <div class="ipAddressCard">
-          <div class="title">IP ADDRESS</div>
-          <div class="info">{{ ipAddress.ip }}</div>
+          <div class="title">TIMEZONE</div>
+          <div class="info">UTC {{ ipAddress.location.timezone }}</div>
         </div>
 
         <div class="ipAddressCard">
-          <div class="title">IP ADDRESS</div>
-          <div class="info">{{ ipAddress.ip }}</div>
+          <div class="title">ISP</div>
+          <div class="info">{{ ipAddress.isp }}</div>
         </div>
         
         
@@ -43,7 +45,7 @@ import axios from 'axios'
 export default {
   name: 'App',
   mounted() {
-    axios.get(`https://geo.ipify.org/api/v2/country?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=8.8.8.8`).then((response) => {
+    axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=8.8.8.8`).then((response) => {
       console.log(response.data)
       this.ipAddress = response.data
     })
@@ -60,6 +62,16 @@ export default {
       if (this.searchText) {
         console.log('fetching...')
         this.loading = true
+        console.log(this.searchText)
+
+         axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=${this.searchText}`)
+         .then((response) => {
+          console.log(response.data)
+          this.ipAddress = response.data
+        })
+        .catch((err) => {
+          console.error(err)
+        })
       }
     }
   },
@@ -94,7 +106,8 @@ export default {
   .headerTitle {
     font-weight: medium;
     color: #FFFFFF;
-    font-size: 20px;
+    font-size: 32px;
+    letter-spacing: -0.29px;
   }
 
   .searchInputWrapper {
@@ -141,14 +154,19 @@ export default {
     height: 100%;
     border: none;
     font-size: 18px;
+    cursor: pointer;
   }
 
   .ipAddressInfo {
     padding: 20px 5px;
     background-color: #FFFFFF;
     border-radius: 10px;
-    display: flex;
-
+    border: noen;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    box-shadow: 0 0 10px gray;
+    width: 80%;
+    margin-bottom: -60px;
   }
 
   .ipAddressCard {
@@ -175,6 +193,18 @@ export default {
     font-weight: medium;
     color: #2C2C2C;
     letter-spacing: -0.23px;
+  }
+
+  @media only screen and (max-width: 768px) {
+    .searchInputWrapper {
+      width: 100%;
+    }
+
+    .ipAddressInfo {
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
   }
 
 
