@@ -10,45 +10,46 @@
         </button>
       </div>
 
-      <div class="ipAddressInfo">
-        <div class="ipAddressCard">
-          <div class="title">IP ADDRESS</div>
-          <div v-if="ipAddress.ip" class="info">{{ ipAddress.ip }}</div>
-        </div>
-
-        <div class="ipAddressCard">
-          <div class="title">LOCATION</div>
-          <div v-if="ipAddress.location" class="info">
-            {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
+      <div class="ipAddressInfoWrapper">
+        <div class="ipAddressInfo">
+          <div class="ipAddressCard">
+            <div class="title">IP ADDRESS</div>
+            <div v-if="ipAddress.ip" class="info">{{ ipAddress.ip }}</div>
           </div>
-        </div>
 
-        <div class="ipAddressCard">
-          <div class="title">TIMEZONE</div>
-          <div v-if="ipAddress.location" class="info">UTC {{ ipAddress.location.timezone }}</div>
-        </div>
+          <div class="ipAddressCard">
+            <div class="title">LOCATION</div>
+            <div v-if="ipAddress.location" class="info">
+              {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
+            </div>
+          </div>
 
-        <div class="ipAddressCard">
-          <div class="title">ISP</div>
-          <div v-if="ipAddress.isp" class="info">{{ ipAddress.isp }}</div>
+          <div class="ipAddressCard">
+            <div class="title">TIMEZONE</div>
+            <div v-if="ipAddress.location" class="info">UTC {{ ipAddress.location.timezone }}</div>
+          </div>
+
+          <div class="ipAddressCard">
+            <div class="title">ISP</div>
+            <div v-if="ipAddress.isp" class="info">{{ ipAddress.isp }}</div>
+          </div>
+          
+          
         </div>
-        
-        
       </div>
     </div>
 
-    <div v-if="ipAddress.ip" class="locationMap">
+    <div class="mapWrapper">
       <l-map
-        v-model="zoom"
-        v-model:zoom="zoom"
-        :center="[ipAddress.location.lat, ipAddress.location.lng]"
-        @move="log('move')"
-        class="map"
+      v-if="ipAddress.ip"
+      v-model="zoom"
+      v-model:zoom="zoom"
+      :center="[ipAddress.location.lat, ipAddress.location.lng]"
+      class="locationMap"
       >
         <l-tile-layer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        ></l-tile-layer>
-        <l-control-layers />
+        ></l-tile-layer>        
         <l-marker :lat-lng="[ipAddress.location.lat, ipAddress.location.lng]" draggable @moveend="log('moveend')">
           <l-tooltip>
             {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
@@ -65,7 +66,6 @@ import {
   LMap,
   LTileLayer,
   LMarker,
-  LControlLayers,
   LTooltip
 } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -76,7 +76,6 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LControlLayers,
     LTooltip
   },
   mounted() {
@@ -89,7 +88,8 @@ export default {
     return {
       ipAddress: {},
       searchText: '',
-      loading: false
+      loading: false,
+      zoom: 11
     }
   },
   methods: {
@@ -126,6 +126,8 @@ export default {
     width: 100vw;
     max-width: 100%;
     font-family: Rubik, sans-serif;
+    display: flex;
+    flex-direction: column;
   }
 
   .topHeader {
@@ -136,6 +138,7 @@ export default {
     align-items: center;
     gap: 20px;
     padding: 15px;
+    z-index: 50;
   }
 
   .headerTitle {
@@ -147,7 +150,7 @@ export default {
 
   .searchInputWrapper {
     width: 50%;
-    border-radius: 10px;
+    border-radius: 15px;
     display: flex;
     align-items: center;
   }
@@ -155,8 +158,8 @@ export default {
   .searchInputWrapper input {
     width: 100%;
     height:100%;
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
     border: none;
     padding: 15px 20px;
     font-size: 18px;
@@ -184,24 +187,29 @@ export default {
   .searchInputWrapper button {
     padding: 16px;
     background-color: #000000;
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
     height: 100%;
     border: none;
     font-size: 18px;
     cursor: pointer;
   }
 
+  .ipAddressInfoWrapper {
+    
+  }
+
   .ipAddressInfo {
     padding: 20px 5px;
     background-color: #FFFFFF;
-    border-radius: 10px;
+    border-radius: 15px;
     border: noen;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     box-shadow: 0 0 10px gray;
-    width: 80%;
-    margin-bottom: -60px;
+    margin-bottom: -7%;
+    position: relative;
+    z-index: 50;
   }
 
   .ipAddressCard {
@@ -230,14 +238,27 @@ export default {
     letter-spacing: -0.23px;
   }
 
-  .locationMap {
-    height: 100%;
-    width: 100vw;
-    margin-top: 60px;
+  .mapWrapper {
+    flex: 1;
+    z-index: 1;
   }
 
-  @media only screen and (max-width: 768px) {
+  .locationMap {
+    width: 100vw;
+    max-width: 100%;
+    height: 100%;
+  }
+
+  @media only screen and (max-width: 900px) {
+    .headerTitle {
+      font-size: 26px;
+    }
+    
     .searchInputWrapper {
+      width: 100%;
+    }
+
+    .ipAddressInfoWrapper {
       width: 100%;
     }
 
@@ -245,6 +266,30 @@ export default {
       display: block;
       width: 100%;
       text-align: center;
+      margin-bottom: -40%;
+    }
+
+    .ipAddressCard {
+      margin-bottom: 20px;
+    }
+
+    .ipAddressCard {
+      font-size: 20px;
+      margin-bottom: 15px;
+      border-right: none;
+    }
+
+    .ipAddressCard:last-of-type {
+      border-right: none;
+      margin-bottom: 0px;
+    }
+
+    .ipAddressCard .title {
+      font-size: 10px;
+    }
+
+    .ipAddressCard .info {
+      font-size: 20px;
     }
   }
 
