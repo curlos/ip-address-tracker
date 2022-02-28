@@ -3,11 +3,15 @@
     <div class="topHeader">
       <div class="headerTitle">IP Address Tracker</div>
 
-      <div class="searchInputWrapper">
+      <div :class="ipAddressError.length > 0 ? 'searchInputWrapper errorBorder' : 'searchInputWrapper'">
         <input type="text" placeholder="Search for any IP address or domain" v-model="searchText" v-on:keyup.enter="fetchIpAddress"/>
         <button @click="fetchIpAddress">
           <img src="/assets/images/icon-arrow.svg" alt="arrow" />
         </button>
+      </div>
+
+      <div v-if="ipAddressError.length > 0" class="errorMessage">
+        {{ ipAddressError }}
       </div>
 
       <div class="ipAddressInfoWrapper">
@@ -79,7 +83,7 @@ export default {
     LTooltip
   },
   mounted() {
-    axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=8.8.8.8`).then((response) => {
+    axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}`).then((response) => {
       console.log(response.data)
       this.ipAddress = response.data
     })
@@ -89,7 +93,8 @@ export default {
       ipAddress: {},
       searchText: '',
       loading: false,
-      zoom: 11
+      zoom: 11,
+      ipAddressError: ''
     }
   },
   methods: {
@@ -98,16 +103,38 @@ export default {
         console.log('fetching...')
         this.loading = true
         console.log(this.searchText)
+        console.log(`${this.searchText} is a valid IP Address: ${this.validIpAddress(this.searchText)}`)
 
-         axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=${this.searchText}`)
+        if (this.validIpAddress(this.searchText)) {
+          axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=${this.searchText}`)
          .then((response) => {
-          console.log(response.data)
-          this.ipAddress = response.data
-        })
-        .catch((err) => {
-          console.error(err)
-        })
+            console.log(response.data)
+            this.ipAddress = response.data
+            this.ipAddressError = ''
+          })
+          .catch((err) => {
+            this.ipAddressError = 'Invalid IP address or domain'
+            console.error(err)
+          })
+        } else {
+          axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&domain=${this.searchText}`)
+         .then((response) => {
+            console.log(response.data)
+            this.ipAddress = response.data
+            this.ipAddressError = ''
+          })
+          .catch((err) => {
+            this.ipAddressError = 'Invalid IP address or domain'
+            console.error(err)
+          })
+        }
       }
+    },
+    validIpAddress(ipAddress) {
+      if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipAddress)) {  
+        return (true)  
+      }
+      return (false)  
     }
   },
 }
@@ -153,6 +180,10 @@ export default {
     border-radius: 15px;
     display: flex;
     align-items: center;
+  }
+
+  .errorBorder {
+    border: 3px solid red;
   }
 
   .searchInputWrapper input {
@@ -247,6 +278,10 @@ export default {
     width: 100vw;
     max-width: 100%;
     height: 100%;
+  }
+
+  .errorMessage {
+    color: red;
   }
 
   @media only screen and (max-width: 900px) {
