@@ -13,37 +13,72 @@
       <div class="ipAddressInfo">
         <div class="ipAddressCard">
           <div class="title">IP ADDRESS</div>
-          <div class="info">{{ ipAddress.ip }}</div>
+          <div v-if="ipAddress.ip" class="info">{{ ipAddress.ip }}</div>
         </div>
 
         <div class="ipAddressCard">
           <div class="title">LOCATION</div>
-          <div class="info">
-            {{ ipAddress.location.city}}, {{ ipAddress.location.region }}
+          <div v-if="ipAddress.location" class="info">
+            {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
           </div>
         </div>
 
         <div class="ipAddressCard">
           <div class="title">TIMEZONE</div>
-          <div class="info">UTC {{ ipAddress.location.timezone }}</div>
+          <div v-if="ipAddress.location" class="info">UTC {{ ipAddress.location.timezone }}</div>
         </div>
 
         <div class="ipAddressCard">
           <div class="title">ISP</div>
-          <div class="info">{{ ipAddress.isp }}</div>
+          <div v-if="ipAddress.isp" class="info">{{ ipAddress.isp }}</div>
         </div>
         
         
       </div>
+    </div>
+
+    <div v-if="ipAddress.ip" class="locationMap">
+      <l-map
+        v-model="zoom"
+        v-model:zoom="zoom"
+        :center="[ipAddress.location.lat, ipAddress.location.lng]"
+        @move="log('move')"
+        class="map"
+      >
+        <l-tile-layer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        ></l-tile-layer>
+        <l-control-layers />
+        <l-marker :lat-lng="[ipAddress.location.lat, ipAddress.location.lng]" draggable @moveend="log('moveend')">
+          <l-tooltip>
+            {{ ipAddress.location.city }}, {{ ipAddress.location.region }}
+          </l-tooltip>
+        </l-marker>
+      </l-map>
     </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
+import {
+  LMap,
+  LTileLayer,
+  LMarker,
+  LControlLayers,
+  LTooltip
+} from "@vue-leaflet/vue-leaflet";
+import "leaflet/dist/leaflet.css";
 
 export default {
   name: 'App',
+  components: {
+    LMap,
+    LTileLayer,
+    LMarker,
+    LControlLayers,
+    LTooltip
+  },
   mounted() {
     axios.get(`https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.VUE_APP_API_KEY}&ipAddress=8.8.8.8`).then((response) => {
       console.log(response.data)
@@ -193,6 +228,12 @@ export default {
     font-weight: medium;
     color: #2C2C2C;
     letter-spacing: -0.23px;
+  }
+
+  .locationMap {
+    height: 100%;
+    width: 100vw;
+    margin-top: 60px;
   }
 
   @media only screen and (max-width: 768px) {
